@@ -13,7 +13,9 @@ class TestFakeScraper:
         assert isinstance(FakeScraper(), WebScraper)
 
     async def test_returns_page_for_known_url(self) -> None:
-        page = ScrapedPage(url="https://example.com", markdown="# Hello", title="Hello", status_code=200)
+        page = ScrapedPage(
+            url="https://example.com", markdown="# Hello", title="Hello", status_code=200
+        )
         scraper = FakeScraper(pages={"https://example.com": page})
 
         result = await scraper.fetch_markdown("https://example.com")
@@ -22,7 +24,9 @@ class TestFakeScraper:
         assert scraper.calls == ["https://example.com"]
 
     async def test_falls_back_to_default(self) -> None:
-        default = ScrapedPage(url="https://fallback.com", markdown="# Fallback", title=None, status_code=200)
+        default = ScrapedPage(
+            url="https://fallback.com", markdown="# Fallback", title=None, status_code=200
+        )
         scraper = FakeScraper(default=default)
 
         result = await scraper.fetch_markdown("https://unknown.com")
@@ -54,7 +58,8 @@ class TestFakeSearch:
 
     async def test_truncates_to_max_results(self) -> None:
         results = [
-            SearchResult(title=str(i), url=f"https://{i}.example.com", snippet="s") for i in range(5)
+            SearchResult(title=str(i), url=f"https://{i}.example.com", snippet="s")
+            for i in range(5)
         ]
         search = FakeSearch(results={"acme": results})
 
