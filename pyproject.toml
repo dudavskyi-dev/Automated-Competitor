@@ -3,7 +3,7 @@ name = "competitive-intelligence-pipeline"
 version = "0.1.0"
 description = "Competitive Intelligence Pipeline"
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2.0", "langgraph>=0.2"]
+dependencies = ["pydantic>=2.0", "langgraph>=0.2", "openai>=1.0", "crawl4ai>=0.4", "ddgs>=9.0"]
 
 [dependency-groups]
 dev = [
@@ -25,6 +25,10 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 files = ["app/domain", "app/ports"]
+
+[[tool.mypy.overrides]]
+module = "crawl4ai.*"
+ignore_missing_imports = true
