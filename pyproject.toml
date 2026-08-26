@@ -3,7 +3,15 @@ name = "competitive-intelligence-pipeline"
 version = "0.1.0"
 description = "Competitive Intelligence Pipeline"
 requires-python = ">=3.11"
-dependencies = ["pydantic>=2.0", "langgraph>=0.2", "openai>=1.0", "crawl4ai>=0.4", "ddgs>=9.0"]
+dependencies = [
+    "pydantic>=2.0",
+    "langgraph>=0.2",
+    "openai>=1.0",
+    "crawl4ai>=0.4",
+    "ddgs>=9.0",
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+]
 
 [dependency-groups]
 dev = [
@@ -24,6 +32,9 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]
 
 [tool.mypy]
 python_version = "3.12"
