@@ -1,7 +1,9 @@
+from app.graph.logging_utils import log_node
 from app.graph.state import GraphState
 
 
 class CuratorNode:
+    @log_node("curator")
     async def __call__(self, state: GraphState) -> GraphState:
         seen_urls: set[str] = set()
         curated = []

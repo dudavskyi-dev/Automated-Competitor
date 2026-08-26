@@ -33,7 +33,10 @@ def _chat_completion_response(content: str) -> httpx2.Response:
 def make_client(handler) -> OpenRouterClient:
     http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(handler))
     openai_client = AsyncOpenAI(
-        base_url="https://openrouter.ai/api/v1", api_key="test-key", http_client=http_client
+        base_url="https://openrouter.ai/api/v1",
+        api_key="test-key",
+        http_client=http_client,
+        max_retries=0,
     )
     return OpenRouterClient(api_key="test-key", client=openai_client)
 
@@ -89,3 +92,20 @@ class TestOpenRouterClient:
 
         with pytest.raises(ValidationError):
             await client.complete(system="sys", user="rate this", response_model=Answer)
+
+    async def test_retries_after_transient_failure(self) -> None:
+        calls = 0
+
+        def handler(request: httpx2.Request) -> httpx2.Response:
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                return httpx2.Response(503, json={"error": "service unavailable"})
+            return _chat_completion_response("hello there")
+
+        client = make_client(handler)
+
+        result = await client.complete(system="sys", user="hi")
+
+        assert result == "hello there"
+        assert calls == 2

@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 
 from app.domain.models import NewsItem
+from app.graph.logging_utils import log_node
 from app.graph.state import GraphState
 from app.ports.search import SearchResult, WebSearch
 
@@ -20,6 +21,7 @@ class NewsFetcherNode:
     def __init__(self, search: WebSearch) -> None:
         self._search = search
 
+    @log_node("news_fetcher")
     async def __call__(self, state: GraphState) -> GraphState:
         context = state.get("company_context")
         if state.get("context_extraction_failed") or context is None:

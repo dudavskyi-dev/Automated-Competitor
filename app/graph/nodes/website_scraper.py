@@ -1,3 +1,4 @@
+from app.graph.logging_utils import log_node
 from app.graph.state import GraphState
 from app.ports.scraper import WebScraper
 
@@ -6,6 +7,7 @@ class WebsiteScraperNode:
     def __init__(self, scraper: WebScraper) -> None:
         self._scraper = scraper
 
+    @log_node("website_scraper")
     async def __call__(self, state: GraphState) -> GraphState:
         try:
             page = await self._scraper.fetch_markdown(state["source_url"])

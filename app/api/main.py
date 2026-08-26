@@ -2,6 +2,7 @@ import asyncio
 import os
 from typing import Any
 
+import structlog
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, HttpUrl
 
@@ -11,6 +12,14 @@ from app.adapters.openrouter_llm import OpenRouterClient
 from app.domain.models import MonitoringBrief
 from app.graph.build_graph import build_graph
 from app.jobs.job_store import InMemoryJobStore, Job, JobStatus, JobStore
+
+structlog.configure(
+    processors=[
+        structlog.processors.add_log_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.JSONRenderer(),
+    ]
+)
 
 app = FastAPI(title="Competitive Intelligence Pipeline")
 

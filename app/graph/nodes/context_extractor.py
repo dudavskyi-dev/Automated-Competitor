@@ -1,4 +1,5 @@
 from app.domain.models import CompanyContext
+from app.graph.logging_utils import log_node
 from app.graph.state import GraphState
 from app.ports.llm import LLMClient
 
@@ -12,6 +13,7 @@ class ContextExtractorNode:
     def __init__(self, llm: LLMClient) -> None:
         self._llm = llm
 
+    @log_node("context_extractor")
     async def __call__(self, state: GraphState) -> GraphState:
         page = state.get("scraped_page")
         if state.get("scrape_failed") or page is None:

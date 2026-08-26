@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from app.domain.models import Competitor
+from app.graph.logging_utils import log_node
 from app.graph.state import GraphState
 from app.ports.llm import LLMClient
 from app.ports.search import WebSearch
@@ -20,6 +21,7 @@ class CompetitorFinderNode:
         self._search = search
         self._llm = llm
 
+    @log_node("competitor_finder")
     async def __call__(self, state: GraphState) -> GraphState:
         context = state.get("company_context")
         if state.get("context_extraction_failed") or context is None:

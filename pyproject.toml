@@ -11,6 +11,8 @@ dependencies = [
     "ddgs>=9.0",
     "fastapi>=0.115",
     "uvicorn>=0.30",
+    "tenacity>=9.0",
+    "structlog>=24.0",
 ]
 
 [dependency-groups]

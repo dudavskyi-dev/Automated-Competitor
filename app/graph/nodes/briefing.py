@@ -1,4 +1,5 @@
 from app.domain.models import NewsItem
+from app.graph.logging_utils import log_node
 from app.graph.state import GraphState
 from app.ports.llm import LLMClient
 
@@ -19,6 +20,7 @@ class BriefingNode:
     def __init__(self, llm: LLMClient) -> None:
         self._llm = llm
 
+    @log_node("briefing")
     async def __call__(self, state: GraphState) -> GraphState:
         grouped = _group_by_entity(state.get("curated_items", []))
 

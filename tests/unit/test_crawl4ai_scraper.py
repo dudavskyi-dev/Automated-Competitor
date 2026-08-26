@@ -5,8 +5,10 @@ from app.adapters.crawl4ai_scraper import Crawl4AIScraper
 
 
 class FakeAsyncWebCrawler:
-    def __init__(self, result: SimpleNamespace) -> None:
+    def __init__(self, result: SimpleNamespace, fail_times: int = 0) -> None:
         self._result = result
+        self._fail_times = fail_times
+        self.call_count = 0
 
     async def __aenter__(self) -> "FakeAsyncWebCrawler":
         return self
@@ -16,6 +18,9 @@ class FakeAsyncWebCrawler:
 
     async def arun(self, url: str) -> SimpleNamespace:
         self.called_with_url = url
+        self.call_count += 1
+        if self.call_count <= self._fail_times:
+            raise ConnectionError("transient failure")
         return self._result
 
 
@@ -65,3 +70,16 @@ class TestCrawl4AIScraper:
 
         assert page.status_code == 0
         assert page.markdown == ""
+
+    async def test_retries_after_transient_failure(self) -> None:
+        result = SimpleNamespace(markdown="# Acme", status_code=200, metadata=None)
+        fake_crawler = FakeAsyncWebCrawler(result, fail_times=1)
+
+        with patch(
+            "app.adapters.crawl4ai_scraper.AsyncWebCrawler", return_value=fake_crawler
+        ):
+            scraper = Crawl4AIScraper()
+            page = await scraper.fetch_markdown("https://acme.example.com")
+
+        assert page.markdown == "# Acme"
+        assert fake_crawler.call_count == 2

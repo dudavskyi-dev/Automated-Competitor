@@ -2,6 +2,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 
 from app.domain.models import MonitoringBrief
+from app.graph.logging_utils import log_node
 from app.graph.state import GraphState
 from app.ports.llm import LLMClient
 
@@ -25,6 +26,7 @@ class EditorNode:
         self._llm = llm
         self._clock = clock
 
+    @log_node("editor")
     async def __call__(self, state: GraphState) -> GraphState:
         context = state.get("company_context")
         if state.get("context_extraction_failed") or context is None:
