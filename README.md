@@ -1,4 +1,4 @@
-# 🎯 Competitive Intelligence Pipeline
+#  Competitive Intelligence Pipeline
 
 An autonomous agent pipeline that turns a single company URL into a structured
 competitor-and-news monitoring brief — no manual research required.
@@ -7,7 +7,7 @@ competitor-and-news monitoring brief — no manual research required.
 
 https://github.com/user-attachments/assets/2f666fc6-9b89-4ba4-926e-27114c9f68ae
 
-## 💡 The Problem & Business Value
+##  The Problem & Business Value
 
 Competitive research is repetitive manual work: find out what a company does, figure out
 who its real competitors are, then trawl the web for recent news about all of them. This
@@ -22,7 +22,7 @@ project automates the whole chain. Give it a URL and it autonomously:
 The whole run is triggered by one API call and polled to completion — a person's part in
 the loop is typing a URL and reading the result.
 
-## 🏗 Architecture
+##  Architecture
 
 ```mermaid
 flowchart TD
@@ -56,7 +56,7 @@ Every external dependency (scraper, search, LLM) sits behind its own Python `Pro
 provider has been swapped three times (OpenRouter → Gemini → Ollama/OpenAI) without
 touching a single graph node.
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -71,7 +71,7 @@ touching a single graph node.
 | Logging | structlog (structured, per-node start/finish/failure events) |
 | Tests | pytest + pytest-asyncio — 92 tests, zero real network calls |
 
-## ⚙️ Key Features
+##  Key Features
 
 - **Ports & adapters architecture.** Every graph node depends only on a `Protocol`
   (`WebScraper`, `WebSearch`, `LLMClient`), never a concrete implementation — proven by
@@ -93,7 +93,7 @@ touching a single graph node.
   node and adapter against fakes/mocks, and integration tests for the full graph and API —
   CI never makes a real network call.
 
-## 📈 Results
+##  Results
 
 - **Verified end-to-end against real, live websites** (including non-English, e-commerce-heavy
   pages), producing a complete `MonitoringBrief`: company profile, 3–5 competitors, curated
@@ -109,7 +109,7 @@ touching a single graph node.
 - **Full pipeline run completes in under two minutes** end-to-end (scrape → extract →
   find competitors → fetch news → curate → summarize → edit) once a local model is warm.
 
-## 🚀 Quick Start
+##  Quick Start
 
 ```bash
 git clone <this-repo>
