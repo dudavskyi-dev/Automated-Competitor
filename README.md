@@ -3,7 +3,9 @@
 An autonomous agent pipeline that turns a single company URL into a structured
 competitor-and-news monitoring brief — no manual research required.
 
-🎥 **[Watch the demo video](https://github.com/user-attachments/assets/2f666fc6-9b89-4ba4-926e-27114c9f68ae)**
+🎥 **Demo**
+
+https://github.com/user-attachments/assets/2f666fc6-9b89-4ba4-926e-27114c9f68ae
 
 ## 💡 The Problem & Business Value
 
