@@ -1,5 +1,4 @@
 import asyncio
-import os
 from typing import Any
 
 import structlog
@@ -8,7 +7,7 @@ from pydantic import BaseModel, HttpUrl
 
 from app.adapters.crawl4ai_scraper import Crawl4AIScraper
 from app.adapters.duckduckgo_search import DuckDuckGoSearch
-from app.adapters.ollama_llm import DEFAULT_HOST, DEFAULT_MODEL, OllamaClient
+from app.adapters.llm_factory import build_llm_client
 from app.domain.models import MonitoringBrief
 from app.graph.build_graph import build_graph
 from app.jobs.job_store import InMemoryJobStore, Job, JobStatus, JobStore
@@ -38,12 +37,10 @@ def get_job_store() -> JobStore:
 def get_graph() -> Any:
     global _graph
     if _graph is None:
-        model = os.environ.get("OLLAMA_MODEL", DEFAULT_MODEL)
-        host = os.environ.get("OLLAMA_HOST", DEFAULT_HOST)
         _graph = build_graph(
             scraper=Crawl4AIScraper(),
             search=DuckDuckGoSearch(),
-            llm=OllamaClient(model=model, host=host),
+            llm=build_llm_client(),
         )
     return _graph
 

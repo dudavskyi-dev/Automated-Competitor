@@ -5,6 +5,8 @@ Usage:
     ollama pull qwen2.5:3b                 # one-time, pulls the default local model
     uv run crawl4ai-setup                  # one-time, installs browser deps for crawl4ai
     uv run python scripts/smoke_test.py [URL]
+
+Set OPENAI_API_KEY in .env instead to use OpenAI rather than the local Ollama setup.
 """
 
 import asyncio
@@ -15,7 +17,7 @@ from dotenv import load_dotenv
 
 from app.adapters.crawl4ai_scraper import Crawl4AIScraper
 from app.adapters.duckduckgo_search import DuckDuckGoSearch
-from app.adapters.ollama_llm import DEFAULT_HOST, DEFAULT_MODEL, OllamaClient
+from app.adapters.llm_factory import build_llm_client
 from app.graph.build_graph import build_graph
 
 FAILURE_FLAGS = (
@@ -31,8 +33,6 @@ FAILURE_FLAGS = (
 async def main() -> None:
     load_dotenv()
 
-    model = os.environ.get("OLLAMA_MODEL", DEFAULT_MODEL)
-    host = os.environ.get("OLLAMA_HOST", DEFAULT_HOST)
     url = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("SMOKE_TEST_URL")
     if not url:
         print("No URL given: pass one as an argument or set SMOKE_TEST_URL.", file=sys.stderr)
@@ -41,7 +41,7 @@ async def main() -> None:
     graph = build_graph(
         scraper=Crawl4AIScraper(),
         search=DuckDuckGoSearch(),
-        llm=OllamaClient(model=model, host=host),
+        llm=build_llm_client(),
     )
 
     print(f"Running pipeline for {url} ...\n")
