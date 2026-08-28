@@ -14,7 +14,9 @@ class TestCallWithRetry:
             calls += 1
             return "ok"
 
-        result = await call_with_retry(func, max_attempts=3, timeout_seconds=1.0)
+        result = await call_with_retry(
+            func, max_attempts=3, timeout_seconds=1.0, wait_multiplier=0.01, wait_max=0.05
+        )
 
         assert result == "ok"
         assert calls == 1
@@ -29,7 +31,9 @@ class TestCallWithRetry:
                 raise ValueError("transient failure")
             return "ok"
 
-        result = await call_with_retry(func, max_attempts=5, timeout_seconds=1.0)
+        result = await call_with_retry(
+            func, max_attempts=5, timeout_seconds=1.0, wait_multiplier=0.01, wait_max=0.05
+        )
 
         assert result == "ok"
         assert calls == 3
@@ -43,7 +47,9 @@ class TestCallWithRetry:
             raise ValueError("permanent failure")
 
         with pytest.raises(ValueError, match="permanent failure"):
-            await call_with_retry(func, max_attempts=3, timeout_seconds=1.0)
+            await call_with_retry(
+                func, max_attempts=3, timeout_seconds=1.0, wait_multiplier=0.01, wait_max=0.05
+            )
 
         assert calls == 3
 
@@ -57,6 +63,8 @@ class TestCallWithRetry:
             return "too slow"
 
         with pytest.raises(TimeoutError):
-            await call_with_retry(func, max_attempts=2, timeout_seconds=0.02)
+            await call_with_retry(
+                func, max_attempts=2, timeout_seconds=0.02, wait_multiplier=0.01, wait_max=0.05
+            )
 
         assert calls == 2

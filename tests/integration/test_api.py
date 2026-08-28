@@ -45,6 +45,21 @@ def make_fake_graph() -> object:
     return build_graph(scraper=scraper, search=search, llm=llm)
 
 
+def make_fake_graph_context_extraction_fails() -> object:
+    page = ScrapedPage(
+        url=SOURCE_URL,
+        markdown="# Acme\nWe help teams plan sprints.",
+        title="Acme",
+        status_code=200,
+    )
+    scraper = FakeScraper(pages={SOURCE_URL: page})
+    search = FakeSearch()
+    # Not a CompanyContext instance -> context_extractor's isinstance check fails,
+    # mirroring the real "LLM echoed the schema instead of filling it in" failure.
+    llm = FakeLLM(responses=["not valid company-context json"])
+    return build_graph(scraper=scraper, search=search, llm=llm)
+
+
 def poll_until_done(client: TestClient, job_id: str, timeout: float = 5.0) -> dict:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -74,6 +89,25 @@ class TestResearchApi:
                 assert report_response.status_code == 200
                 brief = report_response.json()
                 assert brief["summary_markdown"] == "# Weekly Brief\n\nNothing new."
+        finally:
+            app.dependency_overrides.clear()
+
+    def test_job_with_no_brief_becomes_error(self) -> None:
+        store = InMemoryJobStore()
+        app.dependency_overrides[get_graph] = make_fake_graph_context_extraction_fails
+        app.dependency_overrides[get_job_store] = lambda: store
+        try:
+            with TestClient(app) as client:
+                create_response = client.post("/research", json={"url": SOURCE_URL})
+                assert create_response.status_code == 200
+                job_id = create_response.json()["job_id"]
+
+                status_body = poll_until_done(client, job_id)
+                assert status_body["status"] == "error"
+
+                report_response = client.get(f"/research/{job_id}/report")
+                assert report_response.status_code == 500
+                assert "monitoring brief" in report_response.json()["detail"].lower()
         finally:
             app.dependency_overrides.clear()
 
