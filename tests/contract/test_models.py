@@ -9,6 +9,7 @@ from app.domain.models import CompanyContext, Competitor, MonitoringBrief, NewsI
 def make_company_context(**overrides: object) -> CompanyContext:
     data: dict[str, object] = {
         "source_url": "https://example.com",
+        "company_name": "Acme",
         "domain": "B2B SaaS for project management",
         "target_audience": "small dev teams",
         "value_proposition": "faster sprint planning",

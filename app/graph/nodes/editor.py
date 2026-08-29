@@ -19,6 +19,16 @@ def _fallback_markdown(summaries: dict[str, str]) -> str:
     return "# Monitoring Brief\n\n" + "\n\n".join(sections)
 
 
+def _strip_code_fence(text: str) -> str:
+    stripped = text.strip()
+    if not stripped.startswith("```"):
+        return text
+    lines = stripped.splitlines()
+    if len(lines) < 2 or not lines[-1].strip().startswith("```"):
+        return text
+    return "\n".join(lines[1:-1]).strip()
+
+
 class EditorNode:
     def __init__(
         self, llm: LLMClient, clock: Callable[[], datetime] = lambda: datetime.now(UTC)
@@ -42,6 +52,8 @@ class EditorNode:
 
         if not isinstance(markdown, str):
             markdown = _fallback_markdown(summaries)
+        else:
+            markdown = _strip_code_fence(markdown)
 
         brief = MonitoringBrief(
             company=context,

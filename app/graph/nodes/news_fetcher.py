@@ -36,7 +36,7 @@ class NewsFetcherNode:
         any_success = False
         for query, related_entity in queries:
             try:
-                results = await self._search.search(query)
+                results = await self._search.search(query, max_results=10)
             except Exception:
                 continue
             any_success = True

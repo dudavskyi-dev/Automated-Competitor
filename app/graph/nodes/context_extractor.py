@@ -5,7 +5,8 @@ from app.ports.llm import LLMClient
 
 SYSTEM_PROMPT = (
     "You are a business analyst. Given a company website's markdown content, "
-    "extract its domain, target audience, value proposition, and keywords."
+    "extract its company name, domain, target audience, value proposition, and "
+    "keywords describing main fields of the company."
 )
 
 

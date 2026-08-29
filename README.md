@@ -5,7 +5,7 @@ competitor-and-news monitoring brief — no manual research required.
 
 🎥 **Demo**
 
-https://github.com/user-attachments/assets/2f666fc6-9b89-4ba4-926e-27114c9f68ae
+https://github.com/user-attachments/assets/2229da74-2367-413a-bfb3-8e3e76782900
 
 ##  The Problem & Business Value
 
@@ -13,9 +13,12 @@ Competitive research is repetitive manual work: find out what a company does, fi
 who its real competitors are, then trawl the web for recent news about all of them. This
 project automates the whole chain. Give it a URL and it autonomously:
 
-1. Scrapes the site and extracts the business's domain, target audience, and value proposition.
-2. Identifies 3–5 real competitors from live web search, with a reason for each.
-3. Fans out news search across the company, every competitor, and the industry.
+1. Scrapes the site and extracts the business's name, domain, target audience, and value
+   proposition.
+2. Identifies 5–7 real competitors from live web search, then independently scrapes each
+   competitor's own official site and writes a description grounded in that real content
+   (not just a search snippet).
+3. Fans out news search across the company, every competitor, and the industry (top 10 each).
 4. Deduplicates and curates the results.
 5. Summarizes each category, then assembles one structured, LLM-written monitoring brief.
 
@@ -42,10 +45,11 @@ flowchart TD
     API --> Pipeline
     Pipeline --> API
 
-    N1 -. scrapes .-> Web[("Target website")]
+    N1 -. scrapes .-> Web[("Target + competitor websites")]
+    N3 -. scrapes .-> Web
     N3 -. searches .-> Search[("DuckDuckGo")]
     N4 -. searches .-> Search
-    N2 & N3 & N6 & N7 -. structured JSON calls .-> LLM["LLM backend<br/>(Ollama, local — or OpenAI)"]
+    N2 & N3 & N6 & N7 -. structured + free-text LLM calls .-> LLM["LLM backend<br/>(Ollama, local — or OpenAI)"]
 
     Pipeline --> Brief["MonitoringBrief<br/>(company · competitors · news · summary)"]
     Brief --> API --> UI
@@ -61,7 +65,7 @@ touching a single graph node.
 | Layer | Technology |
 |---|---|
 | Agent orchestration | LangGraph — 7-node graph, each node a pure `State -> State` function |
-| Website scraping | crawl4ai (LLM-ready markdown output) |
+| Website scraping | crawl4ai (LLM-ready markdown output) — used for the target company's site and each competitor's official site |
 | Web search | DuckDuckGo (`ddgs`), behind an interface swappable for SearXNG |
 | LLM | **Ollama** (local, default — `qwen2.5:3b`) or **OpenAI** (`gpt-5-mini`), auto-selected by whether `OPENAI_API_KEY` is set |
 | Backend | FastAPI (async, background-task polling job) |
@@ -69,7 +73,7 @@ touching a single graph node.
 | Domain models | Pydantic v2 (contract-tested) |
 | Resilience | tenacity-based retry/backoff, tuned per LLM backend |
 | Logging | structlog (structured, per-node start/finish/failure events) |
-| Tests | pytest + pytest-asyncio — 92 tests, zero real network calls |
+| Tests | pytest + pytest-asyncio — 96 tests, zero real network calls |
 
 ##  Key Features
 
@@ -83,9 +87,15 @@ touching a single graph node.
 - **Schema-constrained structured output.** Every LLM call that needs structured data uses
   native JSON-schema-constrained decoding (not prompt-and-hope), which is what makes small,
   free/local models usable here at all.
+- **Competitor descriptions grounded in real content.** Competitor discovery is two-stage:
+  identify candidate names from search, then independently fetch each competitor's own official
+  site and describe them from that real page — not from a two-line search snippet, which is
+  what used to make an LLM confidently describe the wrong "Bambu" or "Prisma" entirely.
 - **Graceful degradation.** Each node can fail independently — a failed competitor search
   doesn't take down news fetching or the final brief; failures are tracked as explicit state
-  flags and the API surfaces a real `error` status instead of silently returning nothing.
+  flags and the API surfaces a real `error` status instead of silently returning nothing. This
+  extends down to individual competitors too: if one competitor's site can't be reached, it
+  falls back to the search snippet instead of being dropped from the brief.
 - **Tuned resilience per backend.** Retry/backoff is calibrated to each provider's actual
   failure mode: long patient backoff for cloud rate limits, no artificial timeout at all for
   local inference (where latency is unpredictable but there's no quota to protect).
@@ -96,9 +106,10 @@ touching a single graph node.
 ##  Results
 
 - **Verified end-to-end against real, live websites** (including non-English, e-commerce-heavy
-  pages), producing a complete `MonitoringBrief`: company profile, 3–5 competitors, curated
-  news tagged by entity, and an LLM-written markdown summary.
-- **92 automated tests, 100% passing**, `ruff` and `mypy --strict` clean.
+  pages), producing a complete `MonitoringBrief`: company profile, 5–7 competitors each
+  described from their own official site, curated news tagged by entity, and an LLM-written
+  markdown summary.
+- **96 automated tests, 100% passing**, `ruff` and `mypy --strict` clean.
 - **A production-grade reliability journey, not just a demo.** Along the way this surfaced
   and fixed a real API bug (a job could report `"done"` with no brief when extraction
   failed, instead of `"error"`), and required diagnosing three distinct classes of LLM
@@ -160,5 +171,10 @@ CI (`.github/workflows/ci.yml`) runs lint + mypy + pytest on every push and pull
 `.env.example`. Vite's dev server proxies `/research*` requests to `http://localhost:8000`,
 so the frontend needs no CORS configuration. This is a local dev-only setup — there's no
 production bundling/serving story yet.
+
+**Windows note:** run the backend without `--reload` (`uvicorn app.api.main:app`). Uvicorn's
+`--reload` forces `asyncio.SelectorEventLoop` on Windows, which can't spawn subprocesses —
+and crawl4ai launches its Playwright browser as a subprocess, so every scrape fails with
+`NotImplementedError` the moment `--reload` is on.
 
 Full specification and phased development plan: [spec_and_plan.md](spec_and_plan.md).

@@ -1,6 +1,6 @@
 from app.domain.models import CompanyContext, Competitor, MonitoringBrief
 from app.graph.build_graph import build_graph
-from app.graph.nodes.competitor_finder import _CompetitorListResponse
+from app.graph.nodes.competitor_finder import _CompetitorNameListResponse
 from app.ports.scraper import ScrapedPage
 from app.ports.search import SearchResult
 from tests.fakes.fake_llm import FakeLLM
@@ -18,22 +18,36 @@ class TestGraphEndToEnd:
             title="Acme",
             status_code=200,
         )
-        scraper = FakeScraper(pages={SOURCE_URL: page})
+        rival_page = ScrapedPage(
+            url="https://rival.example.com",
+            markdown="# Rival Inc\nWe build project management software.",
+            title="Rival Inc",
+            status_code=200,
+        )
+        scraper = FakeScraper(pages={SOURCE_URL: page, "https://rival.example.com/": rival_page})
 
         context = CompanyContext(
             source_url=SOURCE_URL,
+            company_name="Acme",
             domain="B2B SaaS for project management",
             target_audience="small dev teams",
             value_proposition="faster sprint planning",
             keywords=["project management", "saas"],
         )
         competitor = Competitor(
-            name="Rival Inc", url="https://rival.example.com", reason="similar audience"
+            name="Rival Inc",
+            url="https://rival.example.com",
+            reason="Rival Inc builds project management software.",
         )
 
         search = FakeSearch(
             results={
-                "project management saas competitors": [
+                '"Acme" competitors': [
+                    SearchResult(
+                        title="Rival Inc", url="https://rival.example.com", snippet="a rival"
+                    )
+                ],
+                "Rival Inc official website": [
                     SearchResult(
                         title="Rival Inc", url="https://rival.example.com", snippet="a rival"
                     )
@@ -65,7 +79,8 @@ class TestGraphEndToEnd:
         llm = FakeLLM(
             responses=[
                 context,
-                _CompetitorListResponse(competitors=[competitor]),
+                _CompetitorNameListResponse(names=["Rival Inc"]),
+                "Rival Inc builds project management software.",
                 "Acme raised a $20M Series B round.",
                 "Rival Inc opened a new office.",
                 "The project management software market is growing.",

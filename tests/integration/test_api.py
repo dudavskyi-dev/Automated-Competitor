@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from app.api.main import app, get_graph, get_job_store
 from app.domain.models import CompanyContext
 from app.graph.build_graph import build_graph
-from app.graph.nodes.competitor_finder import _CompetitorListResponse
+from app.graph.nodes.competitor_finder import _CompetitorNameListResponse
 from app.jobs.job_store import InMemoryJobStore
 from app.ports.scraper import ScrapedPage
 from tests.fakes.fake_llm import FakeLLM
@@ -29,6 +29,7 @@ def make_fake_graph() -> object:
     scraper = FakeScraper(pages={SOURCE_URL: page})
     context = CompanyContext(
         source_url=SOURCE_URL,
+        company_name="Acme",
         domain="B2B SaaS for project management",
         target_audience="small dev teams",
         value_proposition="faster sprint planning",
@@ -38,7 +39,7 @@ def make_fake_graph() -> object:
     llm = FakeLLM(
         responses=[
             context,
-            _CompetitorListResponse(competitors=[]),
+            _CompetitorNameListResponse(names=[]),
             "# Weekly Brief\n\nNothing new.",
         ]
     )

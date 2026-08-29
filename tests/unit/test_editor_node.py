@@ -16,6 +16,7 @@ FIXED_TIME = datetime(2026, 1, 2, tzinfo=UTC)
 def make_context() -> CompanyContext:
     return CompanyContext(
         source_url="https://acme.example.com",
+        company_name="Acme",
         domain="B2B SaaS for project management",
         target_audience="small dev teams",
         value_proposition="faster sprint planning",
@@ -63,6 +64,24 @@ class TestEditorNode:
         assert brief.items == items
         assert brief.generated_at == FIXED_TIME
         assert brief.summary_markdown == "# Weekly brief\n\nAcme raised a Series B."
+
+    async def test_strips_wrapping_code_fence_from_llm_output(self) -> None:
+        context = make_context()
+        fenced = "```markdown\n# Weekly brief\n\nAcme raised a Series B.\n```"
+        llm = FakeLLM(responses=[fenced])
+        node = EditorNode(llm=llm, clock=lambda: FIXED_TIME)
+
+        result = await node(
+            {
+                "company_context": context,
+                "context_extraction_failed": False,
+                "competitors": [],
+                "curated_items": [],
+                "category_summaries": {"company": "Acme raised a Series B."},
+            }
+        )
+
+        assert result["brief"].summary_markdown == "# Weekly brief\n\nAcme raised a Series B."
 
     async def test_skips_when_context_extraction_failed(self) -> None:
         node = EditorNode(llm=FakeLLM(responses=[]))

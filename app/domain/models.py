@@ -5,6 +5,7 @@ from pydantic import BaseModel, HttpUrl
 
 class CompanyContext(BaseModel):
     source_url: HttpUrl
+    company_name: str
     domain: str
     target_audience: str
     value_proposition: str

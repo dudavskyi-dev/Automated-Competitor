@@ -21,7 +21,7 @@ def build_graph(
 
     graph.add_node("website_scraper", WebsiteScraperNode(scraper))
     graph.add_node("context_extractor", ContextExtractorNode(llm))
-    graph.add_node("competitor_finder", CompetitorFinderNode(search, llm))
+    graph.add_node("competitor_finder", CompetitorFinderNode(search, scraper, llm))
     graph.add_node("news_fetcher", NewsFetcherNode(search))
     graph.add_node("curator", CuratorNode())
     graph.add_node("briefing", BriefingNode(llm))

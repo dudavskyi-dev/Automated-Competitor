@@ -18,6 +18,7 @@ def make_page(markdown: str = "# Acme\nWe help teams plan sprints.") -> ScrapedP
 def make_context() -> CompanyContext:
     return CompanyContext(
         source_url="https://acme.example.com",
+        company_name="Acme",
         domain="B2B SaaS for project management",
         target_audience="small dev teams",
         value_proposition="faster sprint planning",
